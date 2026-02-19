@@ -121,9 +121,13 @@ def scan(root, output, threshold, quiet):
     start_time = time.monotonic()
     silent_files = []
     found_silent = 0
+    current_dir = None
 
     for index, file_path in enumerate(all_files, start=1):
         if not quiet:
+            if file_path.parent != current_dir:
+                current_dir = file_path.parent
+                click.echo(f"\n  {current_dir}")
             click.echo(
                 f"\r  [{index}/{total}]  {file_path.name[:50]:<50}  "
                 f"({found_silent} silent found)",
