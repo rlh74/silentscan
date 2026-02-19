@@ -122,25 +122,31 @@ def scan(root, output, threshold, quiet):
     silent_files = []
     found_silent = 0
     current_dir = None
+    dir_silent = 0
 
     for index, file_path in enumerate(all_files, start=1):
         if not quiet:
             if file_path.parent != current_dir:
                 current_dir = file_path.parent
+                dir_silent = 0
                 click.echo(f"\n  {current_dir}")
-            click.echo(
-                f"\r  [{index}/{total}]  {file_path.name[:50]:<50}  "
-                f"({found_silent} silent found)",
-                nl=False,
-            )
 
         if is_silent(file_path, threshold):
             found_silent += 1
+            dir_silent += 1
             silent_files.append({
                 "path": str(file_path),
                 "size_bytes": file_path.stat().st_size,
                 "duration_seconds": get_duration(file_path),
             })
+
+        if not quiet:
+            pct = int((index / total) * 100)
+            click.echo(
+                f"\r {pct:>3}% [{index}/{total}]  {file_path.name[:50]:<50}  "
+                f"({dir_silent} silent audio files in folder)",
+                nl=False,
+            )
 
     duration = time.monotonic() - start_time
 
