@@ -72,7 +72,7 @@ def cli():
     "--output", "-o",
     type=click.Path(),
     default=None,
-    help="Path to write the JSON report. Defaults to <folder_name>.silentscan.json in the current directory.",
+    help="Path to write the JSON report. Defaults to silentscan reports directory.",
 )
 @click.option(
     "--threshold", "-t",
@@ -99,45 +99,9 @@ def scan(root, output, threshold, quiet):
 
     click.echo(f"\n  Scanning: {root_path}")
     click.echo(f"  Threshold: {threshold} dBFS")
-    click.echo(f"  Report will be saved to: {output_path}\n")
+    click.echo(f"  Report: {output_path}\n")
 
-    start_time = time.monotonic()
-    found_silent = 0
-
-    def on_progress(current: int, total: int, path: Path):
-        nonlocal found_silent
-        if not quiet:
-            # Overwrite the current line for a clean progress display
-            click.echo(
-                f"\r  [{current}/{total}]  {path.name[:50]:<50}  "
-                f"({found_silent} silent found)",
-                nl=False,
-            )
-
-    def on_silent_found():
-        nonlocal found_silent
-        found_silent += 1
-
-    # Patch on_progress to also count silent files
-    original_on_progress = on_progress
-
-    silent_files = []
-    total_scanned = [0]
-
-    def progress_and_collect(current, total, path):
-        total_scanned[0] = total
-        original_on_progress(current, total, path)
-
-    from silentscan.scanner import (
-        SUPPORTED_EXTENSIONS,
-        is_silent,
-        get_duration,
-        db_to_amplitude,
-    )
-    import os
-    import numpy as np
-
-    # Run scan manually here so we can update found_silent in real time
+    # Collect all supported audio files
     all_files = [
         Path(dirpath) / filename
         for dirpath, _, filenames in os.walk(root_path)
@@ -153,6 +117,10 @@ def scan(root, output, threshold, quiet):
             "  Check that you selected the correct root folder.\n"
         )
         return
+
+    start_time = time.monotonic()
+    silent_files = []
+    found_silent = 0
 
     for index, file_path in enumerate(all_files, start=1):
         if not quiet:
@@ -172,7 +140,6 @@ def scan(root, output, threshold, quiet):
 
     duration = time.monotonic() - start_time
 
-    # Clear the progress line
     if not quiet:
         click.echo()
 
