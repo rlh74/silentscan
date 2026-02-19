@@ -156,6 +156,34 @@ def scan(root, output, threshold, quiet):
     click.echo(summarize_report(report))
     click.echo(f"  Report saved: {output_path}\n")
 
+# ─── Reports subcommand ───────────────────────────────────────────────────────
+
+@cli.command("reports")
+def list_reports():
+    """
+    List all scan reports saved in the silentscan reports directory.
+    """
+    reports = load_all_reports()
+
+    if not reports:
+        click.echo("\n  No reports found. Run 'silentscan scan' to generate one.\n")
+        return
+
+    click.echo(f"\n── Reports ({len(reports)} found) {'─' * 35}")
+    click.echo(f"  {'Name':<35} {'Scanned':<22} {'Silent':>8} {'Reclaimable':>12}")
+    click.echo(f"  {'─'*35} {'─'*22} {'─'*8} {'─'*12}")
+
+    for report_path, report in reports:
+        name = report_path.stem.replace(".silentscan", "")[:35]
+        scanned_at = report.get("scanned_at", "unknown")[:19].replace("T", " ")
+        silent = report.get("total_silent_files", 0)
+        size = format_size(report.get("total_silent_size_bytes", 0))
+        click.echo(f"  {name:<35} {scanned_at:<22} {silent:>8} {size:>12}")
+
+    click.echo()
+    click.echo(f"  Reports directory: {get_reports_dir()}")
+    click.echo()
+
 
 # ─── Clean subcommand ─────────────────────────────────────────────────────────
 
