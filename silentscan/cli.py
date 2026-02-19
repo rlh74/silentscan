@@ -1,3 +1,4 @@
+import os
 import time
 from pathlib import Path
 
@@ -7,8 +8,7 @@ from silentscan.scanner import (
     SUPPORTED_EXTENSIONS,
     is_silent,
     get_duration,
-    scan_directory, 
-    DEFAULT_SILENCE_THRESHOLD_DB
+    DEFAULT_SILENCE_THRESHOLD_DB,
 )
 from silentscan.report import (
     build_report, 
@@ -17,7 +17,7 @@ from silentscan.report import (
     summarize_report, 
     format_size,
     format_duration,
-    )
+)
 from silentscan.cleaner import run_clean
 
 def get_reports_dir() -> Path:
@@ -39,9 +39,9 @@ def load_all_reports() -> list[tuple[Path, dict]]:
     reports_dir = get_reports_dir()
     report_files = sorted(reports_dir.glob("*.silentscan.json"), reverse=True)
     results = []
-    for report_file in report_files:
+    for report_path in report_files:
         try:
-            results.append((report_file, read_report(report_path)))
+            results.append((report_path, read_report(report_path)))
         except Exception:
             click.echo(f"  ⚠  Could not read report: {report_path.name}")
     return results
@@ -95,7 +95,7 @@ def scan(root, output, threshold, quiet):
     traversed with no depth limit.
     """
     root_path = Path(root)
-    output_path = Path(output) if output else _default_report_path(root_path)
+    output_path = Path(output) if output else get_default_report_path(root_path)
 
     click.echo(f"\n  Scanning: {root_path}")
     click.echo(f"  Threshold: {threshold} dBFS")
