@@ -212,6 +212,82 @@ def clean(report, dry_run, yes):
     report_path = Path(report)
     run_clean(report_path, dry_run=dry_run, yes=yes)
 
+# ─── Clean-all subcommand ─────────────────────────────────────────────────────
+
+@cli.command("clean-all")
+@click.option(
+    "--dry-run", "-n",
+    is_flag=True,
+    default=False,
+    help="Preview what would be recycled across all reports without touching any files.",
+)
+@click.option(
+    "--yes", "-y",
+    is_flag=True,
+    default=False,
+    help="Skip confirmation and recycle all flagged files across all reports.",
+)
+def clean_all(dry_run, yes):
+    """
+    Send silent files from ALL saved reports to the Recycle Bin in one pass.
+
+    Processes every report in the silentscan reports directory with a single
+    confirmation prompt. Always run with --dry-run first.
+    """
+    reports = load_all_reports()
+
+    if not reports:
+        click.echo("\n  No reports found. Run 'silentscan scan' first.\n")
+        return
+
+    # Tally across all reports
+    all_files = [
+        f
+        for _, report in reports
+        for session in report.get("sessions", [])
+        for f in session.get("silent_files", [])
+    ]
+
+    if not all_files:
+        click.echo("\n  No silent files found across all reports. Nothing to do.\n")
+        return
+
+    total_size = sum(f["size_bytes"] for f in all_files)
+
+    click.echo(f"\n── Clean All {'(DRY RUN) ' if dry_run else ''}{'─' * 43}")
+    click.echo(f"  {len(reports)} report(s)  ·  {len(all_files)} file(s)  ·  {format_size(total_size)} reclaimable\n")
+
+    for report_path, report in reports:
+        files_in_report = [
+            f
+            for session in report.get("sessions", [])
+            for f in session.get("silent_files", [])
+        ]
+        report_size = sum(f["size_bytes"] for f in files_in_report)
+        click.echo(f"  {report_path.stem:<45} {len(files_in_report):>4} file(s)  {format_size(report_size):>10}")
+
+    click.echo()
+
+    if dry_run:
+        click.echo("  Dry run — no files were moved to the Recycle Bin.\n")
+        return
+
+    if not yes:
+        confirmed = click.confirm(
+            f"  Send {len(all_files)} file(s) across {len(reports)} report(s) to the Recycle Bin?",
+            default=False,
+        )
+        if not confirmed:
+            click.echo("\n  Aborted. No files were moved.\n")
+            return
+
+    click.echo()
+
+    # Process each report
+    for report_path, _ in reports:
+        click.echo(f"  ── {report_path.stem}")
+        run_clean(report_path, dry_run=False, yes=True)
+
 
 # ─── Summary subcommand ───────────────────────────────────────────────────────
 
