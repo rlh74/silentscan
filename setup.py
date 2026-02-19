@@ -9,5 +9,10 @@ setup(
         "numpy",
         "soundfile",
     ],
+    entry_points={
+        "console_scripts": [
+            "silentscan=silentscan.cli:cli",
+        ],
+    },
 )
 
