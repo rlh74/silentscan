@@ -3,14 +3,48 @@ from pathlib import Path
 
 import click
 
-from silentscan.scanner import scan_directory, DEFAULT_SILENCE_THRESHOLD_DB
-from silentscan.report import build_report, write_report, read_report, summarize_report, format_size
+from silentscan.scanner import (
+    SUPPORTED_EXTENSIONS,
+    is_silent,
+    get_duration,
+    scan_directory, 
+    DEFAULT_SILENCE_THRESHOLD_DB
+)
+from silentscan.report import (
+    build_report, 
+    write_report, 
+    read_report, 
+    summarize_report, 
+    format_size,
+    format_duration,
+    )
 from silentscan.cleaner import run_clean
 
+def get_reports_dir() -> Path:
+    """Return platform-appropriate directory for storing silentscan reports."""
+    app_dir = click.get_app_dir("silentscan", force_posix=False)
+    reports_dir = Path(app_dir) / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True) 
+    return reports_dir
 
-def _default_report_path(root: Path) -> Path:
+def get_default_report_path(root: Path) -> Path:
     """Generate a default report filename based on the scanned root folder name."""
-    return Path(f"{root.name}.silentscan.json")
+    return get_reports_dir() / f"{root.name}.silentscan.json"
+
+def load_all_reports() -> list[tuple[Path, dict]]:
+    """
+    Load all .silentscan.json reports from the central reports directory.
+    Returns a list of (path, report_dict) tuples sorted by scan date descending.
+    """
+    reports_dir = get_reports_dir()
+    report_files = sorted(reports_dir.glob("*.silentscan.json"), reverse=True)
+    results = []
+    for report_file in report_files:
+        try:
+            results.append((report_file, read_report(report_path)))
+        except Exception:
+            click.echo(f"  ⚠  Could not read report: {report_path.name}")
+    return results
 
 
 # ─── Root group ───────────────────────────────────────────────────────────────
