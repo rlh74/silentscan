@@ -44,3 +44,6 @@ htmlcov/
 # silentscan output files
 *.silentscan.json
 reports/
+
+# Test fixtures
+fixtures/
