@@ -16,7 +16,7 @@ def is_silent(file_path: Path, threshold_db: float = DEFAULT_SILENCE_THRESHOLD_D
        data, _ = sf.read(str(file_path), always_2d=True)
        peak = np.max(np.abs(data))
        threshold = db_to_amplitude(threshold_db)
-       return peak < threshold
+       return bool(peak < threshold)
     except Exception:
         # Unreadable file or corrupt file ignored.
         return False

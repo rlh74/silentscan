@@ -1,0 +1,5 @@
+setuptools
+soundfile
+numpy
+click
+pytest
