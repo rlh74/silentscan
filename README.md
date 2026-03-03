@@ -16,6 +16,7 @@ Recording with all inputs armed is a common defensive practice — it means you 
 - macOS or Windows
 - [pyenv](https://github.com/pyenv/pyenv) (recommended for managing Python versions)
 - On macOS: [`trash`](https://formulae.brew.sh/formula/trash) CLI for Recycle Bin support
+- On Windows: `winshell` and `pywin32` for Recycle Bin support
 
 ---
 
@@ -65,6 +66,14 @@ brew install trash
 ```
 
 This is required for sending files to the Trash on macOS. `silentscan` will not perform permanent deletion under any circumstances.
+
+### 6. Windows only — install Recycle Bin dependencies
+
+```cmd
+pip install winshell pywin32
+```
+
+This is required for sending files to the Recycle Bin on Windows. `silentscan` will not perform permanent deletion under any circumstances.
 
 ---
 
