@@ -1,5 +1,22 @@
-[build system]
-requires = [setuptools>=68, "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
+name = "silentscan"
+version = "0.1.0"
+description = "Find and remove silent audio files from a given directory."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "soundfile",
+    "numpy",
+    "click",
+]
+
+[project.scripts]
+silentscan = "silentscan.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["silentscan*"]
